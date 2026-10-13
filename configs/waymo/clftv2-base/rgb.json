@@ -1,0 +1,30 @@
+{
+  "extends": "clftv2",
+  "Summary": "Waymo RGB CLFTv2-Base",
+  "tags": ["waymo", "clftv2-base", "rgb"],
+  "CLI": {"mode": "rgb"},
+  "Dataset": {
+    "dataset_root": "data/waymo",
+    "annotation_path": "annotation",
+    "transforms": {"resize": 384}
+  },
+  "Log": {"logdir": "logs/waymo/clftv2-base/rgb"},
+  "General": {
+    "device": "cuda:0",
+    "epochs": 100,
+    "batch_size": 2,
+    "accumulate_batches": 4,
+    "seed": 0,
+    "early_stop_patience": 100,
+    "max_checkpoints": 1,
+    "publish_model": "visin",
+    "model_license": "other",
+    "model_credit": "Waymo Open Dataset, Waymo LLC"
+  },
+  "CLFTv2": {
+    "model_timm": "swinv2_base_window12to24_192to384_22kft1k",
+    "emb_dims": [128, 256, 512, 1024],
+    "clft_lr": 8e-05,
+    "pretrained": true
+  }
+}

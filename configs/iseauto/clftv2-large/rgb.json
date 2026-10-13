@@ -1,0 +1,30 @@
+{
+  "extends": "clftv2",
+  "Summary": "iSeAuto RGB CLFTv2-Large",
+  "tags": ["iseauto", "clftv2-large", "rgb"],
+  "CLI": {"mode": "rgb"},
+  "Dataset": {
+    "dataset_root": "data/iseauto",
+    "annotation_path": "annotation",
+    "transforms": {"resize": 384}
+  },
+  "Log": {"logdir": "logs/iseauto/clftv2-large/rgb"},
+  "General": {
+    "device": "cuda:0",
+    "epochs": 200,
+    "batch_size": 2,
+    "accumulate_batches": 4,
+    "seed": 0,
+    "early_stop_patience": 200,
+    "max_checkpoints": 1,
+    "publish_model": "visin",
+    "model_license": "cc-by-4.0",
+    "model_credit": "iseAuto dataset, Tallinn University of Technology (TalTech)"
+  },
+  "CLFTv2": {
+    "model_timm": "swinv2_large_window12to24_192to384_22kft1k",
+    "emb_dims": [192, 384, 768, 1536],
+    "clft_lr": 8e-05,
+    "pretrained": true
+  }
+}

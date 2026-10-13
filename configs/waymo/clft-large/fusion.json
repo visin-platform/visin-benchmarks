@@ -1,0 +1,29 @@
+{
+  "extends": "clft",
+  "Summary": "Waymo fusion CLFT-Large",
+  "tags": ["waymo", "clft-large", "fusion"],
+  "CLI": {"mode": "fusion"},
+  "Dataset": {
+    "dataset_root": "data/waymo",
+    "annotation_path": "annotation"
+  },
+  "Log": {"logdir": "logs/waymo/clft-large/fusion"},
+  "General": {
+    "device": "cuda:0",
+    "epochs": 200,
+    "batch_size": 8,
+    "seed": 0,
+    "early_stop_patience": 200,
+    "max_checkpoints": 1,
+    "publish_model": "visin",
+    "model_license": "other",
+    "model_credit": "Waymo Open Dataset, Waymo LLC"
+  },
+  "CLFT": {
+    "model_timm": "vit_large_patch16_384",
+    "emb_dim": 1024,
+    "hooks": [5, 11, 17, 23],
+    "clft_lr": 8e-05,
+    "pretrained": true
+  }
+}

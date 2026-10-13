@@ -1,0 +1,27 @@
+{
+  "extends": "clft",
+  "Summary": "ZOD fusion CLFT-Hybrid",
+  "tags": ["zod", "clft-hybrid", "fusion"],
+  "CLI": {"mode": "fusion"},
+  "Dataset": {
+    "dataset_root": "data/zod",
+    "annotation_path": "annotation_camera_only"
+  },
+  "Log": {"logdir": "logs/zod/clft-hybrid/fusion"},
+  "General": {
+    "device": "cuda:0",
+    "epochs": 300,
+    "batch_size": 8,
+    "seed": 0,
+    "early_stop_patience": 300,
+    "max_checkpoints": 1,
+    "publish_model": "visin",
+    "model_license": "cc-by-sa-4.0",
+    "model_credit": "Zenseact Open Dataset (ZOD), Zenseact AB"
+  },
+  "CLFT": {
+    "model_timm": "vit_base_resnet50_384",
+    "clft_lr": 8e-05,
+    "pretrained": true
+  }
+}

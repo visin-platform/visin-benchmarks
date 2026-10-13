@@ -1,0 +1,27 @@
+{
+  "extends": "clft",
+  "Summary": "iSeAuto fusion CLFT-Hybrid",
+  "tags": ["iseauto", "clft-hybrid", "fusion"],
+  "CLI": {"mode": "fusion"},
+  "Dataset": {
+    "dataset_root": "data/iseauto",
+    "annotation_path": "annotation"
+  },
+  "Log": {"logdir": "logs/iseauto/clft-hybrid/fusion"},
+  "General": {
+    "device": "cuda:0",
+    "epochs": 300,
+    "batch_size": 8,
+    "seed": 0,
+    "early_stop_patience": 300,
+    "max_checkpoints": 1,
+    "publish_model": "visin",
+    "model_license": "cc-by-4.0",
+    "model_credit": "iseAuto dataset, Tallinn University of Technology (TalTech)"
+  },
+  "CLFT": {
+    "model_timm": "vit_base_resnet50_384",
+    "clft_lr": 8e-05,
+    "pretrained": true
+  }
+}

@@ -1,0 +1,4 @@
+# Exact versions, so every machine trains with the same code.
+# visin-fusion brings torch, torchvision and timm; visin uploads to Visin and downloads datasets.
+visin-fusion[visin]==0.6.0
+visin==0.9.0
