@@ -13,6 +13,5 @@
 #   sbatch slurm.sh configs/iseauto/clftv2-tiny             a folder: rgb, lidar and fusion
 
 source .venv/bin/activate
-export TQDM_MININTERVAL=60   # redraw the progress bar once a minute in this log, not ten times a second
 
 python train.py run "$1"

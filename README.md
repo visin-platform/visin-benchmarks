@@ -73,9 +73,9 @@ grep "Epoch:" slurm-<jobid>.out | tail -1      # the epoch it is on
 ```
 
 The log's first line names the config and how many epochs it trains. Epochs are counted from 0, so `Epoch: 57` is
-the 58th. Within an epoch the progress bar shows batches done out of the total and the time left in the epoch; in
-the SLURM log it is redrawn once a minute. After each epoch the log prints training and validation mIoU, loss and
-per-class IoU. Visin shows the same: the run's page fills in as each epoch finishes.
+the 58th. Within an epoch the progress bar shows batches done out of the total and the time left in the epoch,
+live in `tail -f`. After each epoch the log prints training and validation mIoU, loss and per-class IoU. Visin
+shows the same: the run's page fills in as each epoch finishes.
 
 ### Before submitting
 
