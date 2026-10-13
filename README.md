@@ -19,8 +19,7 @@ setup.sh, requirements.txt              create .venv with exact package versions
 **1. Get the code and set up** (once, on the login node):
 
 ```sh
-git clone <this repo> fusion-training && cd fusion-training
-module load Python/3.11          # only if the cluster's python3 is older than 3.10
+git clone git@github.com:visin-platform/visin-benchmarks.git && cd visin-benchmarks
 ./setup.sh                       # creates .venv and .env
 nano .env                        # VISIN_TOKEN, and VISIN_DATA_DIR / HF_HOME on scratch space
 source .venv/bin/activate
