@@ -23,6 +23,7 @@ git clone git@github.com:visin-platform/visin-benchmarks.git && cd visin-benchma
 ./setup.sh                       # creates .venv and .env
 nano .env                        # VISIN_TOKEN, and VISIN_DATA_DIR / HF_HOME on scratch space
 source .venv/bin/activate
+export SBATCH_ACCOUNT=<account>  # the cluster account the GPU hours are billed to; or sbatch -A <account> each time
 ```
 
 `VISIN_TOKEN` is a pipeline key limited to one Visin project (project *Settings → Pipeline keys*); every run goes
@@ -44,10 +45,11 @@ sbatch slurm.sh configs/iseauto/clftv2-tiny/rgb.json
 When it ends, `slurm-<jobid>.out` should end with `Done: train, test, visualize, benchmark`, and in Visin the run
 should have its epochs, test results, visualizations, a benchmark, and a model marked *ready*.
 
-**4. All of iSeAuto**: 18 jobs, 4 at a time (~46 GPU-hours):
+**4. All of iSeAuto**: 18 configs (~46 GPU-hours):
 
 ```sh
-sbatch --array=1-18%4 slurm.sh configs/iseauto
+sbatch slurm.sh configs/iseauto                  # one job, all 18 configs one after another
+sbatch slurm.sh configs/iseauto/clftv2-base      # or one job per model folder (rgb, lidar, fusion), in parallel
 ```
 
 **5. ZOD and Waymo**:
@@ -55,11 +57,12 @@ sbatch --array=1-18%4 slurm.sh configs/iseauto
 ```sh
 python train.py download zod
 python train.py download waymo
-sbatch --array=1-18%4 slurm.sh configs/zod
-sbatch --array=1-18%4 --time=72:00:00 slurm.sh configs/waymo    # 4-27 h per job
+sbatch slurm.sh configs/zod
+sbatch slurm.sh configs/waymo                    # 4-27 h per config
 ```
 
-Array task N runs the Nth config of the folder in alphabetical order.
+`slurm.sh` takes one config file or one folder, and trains a folder's configs one after another in alphabetical
+order in a single job.
 
 ### Watching a job
 
@@ -76,8 +79,10 @@ per-class IoU. Visin shows the same: the run's page fills in as each epoch finis
 
 ### Before submitting
 
-- **Edit the `#SBATCH` lines in `slurm.sh`** for your cluster: partition, account, `--time`. Add a `module load` if
-  the GPUs need one.
+- **An account is required**: `slurm.sh` sets none, so set `SBATCH_ACCOUNT` (step 1) or pass `-A <account>`. A
+  cluster that requires an account refuses the job without one.
+- **Edit the `#SBATCH` lines in `slurm.sh`** for your cluster, e.g. a partition. Add a `module load` if the GPUs
+  need one.
 - **Compute nodes that cannot reach Visin**: put `VISIN_MODE=offline` in `.env`. Reports and the checkpoint upload
   then wait on disk, and `visin sync` on the login node sends them.
 - **A job that is killed** is trained from scratch when submitted again. To continue it instead, set

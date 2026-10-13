@@ -3,19 +3,16 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
-#SBATCH --time=48:00:00
 #SBATCH --output=slurm-%j.out
+#SBATCH --account=
 
-# Submit from this folder, after `python train.py download <dataset>`:
+# Submit from this folder, after `python train.py download <dataset>`, with your account in SBATCH_ACCOUNT or
+# -A <account>. One job trains a config file, or every config in a folder one after another:
 #
 #   sbatch slurm.sh configs/iseauto/clftv2-tiny/rgb.json    one config
-#   sbatch --array=1-18%4 slurm.sh configs/iseauto          a folder: array task N runs its Nth config, 4 at a time
+#   sbatch slurm.sh configs/iseauto/clftv2-tiny             a folder: rgb, lidar and fusion
 
 source .venv/bin/activate
 export TQDM_MININTERVAL=60   # redraw the progress bar once a minute in this log, not ten times a second
 
-if [ -n "$SLURM_ARRAY_TASK_ID" ]; then
-    python train.py run "$1" --task "$SLURM_ARRAY_TASK_ID"
-else
-    python train.py run "$1"
-fi
+python train.py run "$1"
