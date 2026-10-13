@@ -1,4 +1,11 @@
-# Fusion training
+# Visin Benchmarks
+
+Benchmark configurations and a Python runner for camera/LiDAR semantic segmentation.
+Requires Python 3.11, Bash for the setup scripts, and an NVIDIA GPU with a compatible
+PyTorch/CUDA installation for the supplied training configs. SLURM is optional.
+The runner downloads datasets and pretrained weights, and uploads training metrics,
+visualizations, and model artifacts to Visin. A Visin project pipeline key is required
+for reporting; dataset access is subject to the source's permissions and terms.
 
 Train CLFT and CLFTv2 on ZOD, iSeAuto and Waymo, and put everything into [Visin](https://app.visin.eu): each run
 with its epochs, test results on every test set, visualizations, a benchmark, and the best checkpoint as `.pth` and as an ONNX model.
@@ -10,7 +17,7 @@ configs/<dataset>/<model>/<mode>.json   54 configs: one file is one training, ev
 configs/<dataset>/dataset.json          the dataset's classes and splits (the downloaded archives have none)
 train.py                                download a dataset; run configs
 slurm.sh                                train.py as a SLURM job
-setup.sh, requirements.txt              create .venv with exact package versions
+setup.sh, requirements.txt              create .venv with pinned direct dependencies
 .env.example                            Visin address, your key, where data goes
 ```
 
@@ -19,7 +26,8 @@ setup.sh, requirements.txt              create .venv with exact package versions
 **1. Get the code and set up** (once, on the login node):
 
 ```sh
-git clone git@github.com:visin-platform/visin-benchmarks.git && cd visin-benchmarks
+git clone https://github.com/visin-platform/visin-benchmarks.git
+cd visin-benchmarks
 ./setup.sh                       # creates .venv (with its own Python 3.11) and .env
 nano .env                        # VISIN_TOKEN, and VISIN_DATA_DIR / HF_HOME on scratch space
 source .venv/bin/activate
@@ -83,7 +91,8 @@ shows the same: the run's page fills in as each epoch finishes.
 - **An account is required**: `slurm.sh` sets none, so set `SBATCH_ACCOUNT` (step 1) or pass `-A <account>`. A
   cluster that requires an account refuses the job without one.
 - **Edit the `#SBATCH` lines in `slurm.sh`** for your cluster, e.g. a partition. Add a `module load` if the GPUs
-  need one.
+  need one. The script requests one generic GPU; select a GPU with sufficient memory
+  for your config and set your cluster's partition/account when submitting.
 - **Compute nodes that cannot reach Visin**: put `VISIN_MODE=offline` in `.env`. Reports and the checkpoint upload
   then wait on disk, and `visin sync` on the login node sends them.
 - **A job that is killed** is trained from scratch when submitted again. To continue it instead, set
@@ -167,3 +176,27 @@ longer needed:
 ```sh
 rm -rf logs/*/*/*/checkpoints
 ```
+
+## Contributing and checks
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and benchmark change guidelines,
+and [SECURITY.md](SECURITY.md) for private security reporting.
+CI checks the runner and config matrix without downloading datasets or using a GPU:
+
+```sh
+python3 -m unittest discover -s tests -v
+```
+
+This suite is run from a checkout; it is not published as a Python package.
+The requirements pin direct packages, but do not lock transitive dependencies.
+For comparable results, keep the commit and a `pip freeze` snapshot alongside
+your hardware and run settings.
+
+## License
+
+[MIT](LICENSE), matching the other Visin Python repositories. This covers the
+code and configurations in this repository. Datasets, dependencies, and pretrained
+weights retain their own licenses; none are bundled here. The `model_license` and
+`model_credit` fields are publication metadata, not permission to redistribute a
+dataset or its derivatives. Confirm the applicable source terms before publishing
+trained weights, particularly for Waymo (`other`).

@@ -7,3 +7,17 @@ work/
 slurm-*.out
 __pycache__/
 .venv/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+build/
+dist/
+*.egg-info/
+*.pth
+*.pt
+*.onnx
+.DS_Store
+slurm.sh

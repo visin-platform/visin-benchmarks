@@ -1,4 +1,6 @@
-# Exact versions, so every machine trains with the same code.
+# Pin direct dependencies; transitive dependencies are resolved at installation.
 # visin-fusion brings torch, torchvision and timm; visin uploads to Visin and downloads datasets.
 visin-fusion[visin,onnx]==0.6.0
 visin==0.9.0
+# Imported directly by train.py; keep independent of fusion's optional extras.
+python-dotenv==1.2.1

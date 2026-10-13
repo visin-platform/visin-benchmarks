@@ -3,7 +3,7 @@
     python train.py download iseauto                         once, with internet: dataset + pretrained backbones
     python train.py run configs/iseauto/clftv2-tiny/rgb.json one config
     python train.py run configs/iseauto                      every config in a folder, one after another
-    python train.py run configs/iseauto --task 3             only the 3rd config of the folder (slurm.sh uses this)
+    python train.py run configs/iseauto --task 3             only the 3rd config of the folder
     python train.py run configs/zod --stages test,benchmark  only some stages
 
 A run trains, tests the best checkpoint on every test set, renders and uploads visualizations, benchmarks the
@@ -17,8 +17,6 @@ import shutil
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 STAGES = "train,test,visualize,benchmark,export"
 
 
@@ -26,8 +24,15 @@ def config_files(path):
     """A config file, or every config in a folder (dataset.json files are manifests, not configs)."""
     path = Path(path)
     if path.is_file():
+        if path.suffix != ".json" or path.name == "dataset.json":
+            raise ValueError(f"not a training config: {path}")
         return [path]
-    return sorted(p for p in path.rglob("*.json") if p.name != "dataset.json")
+    if not path.is_dir():
+        raise ValueError(f"config path does not exist: {path}")
+    configs = sorted(p for p in path.rglob("*.json") if p.name != "dataset.json")
+    if not configs:
+        raise ValueError(f"no training configs under {path}")
+    return configs
 
 
 def download(dataset):
@@ -104,17 +109,22 @@ def export(config):
 
 def run(path, stages, task=None):
     """Run the stages of every config the path names; a failing config does not stop the others."""
-    import visin_fusion
-    from visin_fusion.logging_setup import configure_logging
-
-    configure_logging()  # show the pipeline's own messages: each stage as it starts, "Done" at the end
     configs = config_files(path)
     stage_list = stages.split(",")
+    if any(stage not in STAGES.split(",") for stage in stage_list):
+        raise ValueError(f"--stages must be comma-separated names from: {STAGES}")
+    if len(stage_list) != len(set(stage_list)):
+        raise ValueError("--stages must not contain duplicates")
     pipeline_stages = [s for s in stage_list if s != "export"]
     if task is not None:
         if not 1 <= task <= len(configs):
             sys.exit(f"--task {task}: {path} has {len(configs)} configs")
         configs = [configs[task - 1]]
+
+    import visin_fusion
+    from visin_fusion.logging_setup import configure_logging
+
+    configure_logging()  # show the pipeline's own messages: each stage as it starts, "Done" at the end
 
     failed = []
     for config in configs:
@@ -136,7 +146,6 @@ def run(path, stages, task=None):
 
 if __name__ == "__main__":
     os.chdir(Path(__file__).resolve().parent)  # configs/, data/ and logs/ are relative to this folder
-    load_dotenv(".env")  # variables already exported win
 
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -148,7 +157,14 @@ if __name__ == "__main__":
     run_parser.add_argument("--task", type=int, help="only the Nth config of the folder, counting from 1")
     args = parser.parse_args()
 
-    if args.command == "download":
-        download(args.dataset)
-    else:
-        run(args.path, args.stages, args.task)
+    from dotenv import load_dotenv
+
+    load_dotenv(".env")  # variables already exported win
+
+    try:
+        if args.command == "download":
+            download(args.dataset)
+        else:
+            run(args.path, args.stages, args.task)
+    except ValueError as error:
+        parser.error(str(error))
