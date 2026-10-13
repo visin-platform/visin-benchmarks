@@ -20,7 +20,7 @@ setup.sh, requirements.txt              create .venv with exact package versions
 
 ```sh
 git clone git@github.com:visin-platform/visin-benchmarks.git && cd visin-benchmarks
-./setup.sh                       # creates .venv and .env
+./setup.sh                       # creates .venv (with its own Python 3.11) and .env
 nano .env                        # VISIN_TOKEN, and VISIN_DATA_DIR / HF_HOME on scratch space
 source .venv/bin/activate
 export SBATCH_ACCOUNT=<account>  # the cluster account the GPU hours are billed to; or sbatch -A <account> each time

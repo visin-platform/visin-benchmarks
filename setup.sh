@@ -1,11 +1,15 @@
 #!/bin/bash
 # Create .venv with everything train.py needs. Run once, in this folder, on a machine with internet.
-# Needs Python 3.10 or newer: on a cluster, `module load` a Python first if python3 is older.
+# uv downloads its own Python 3.11 into your home folder, so the system's python3 can be any version.
 set -e
 
-python3 -m venv .venv
-.venv/bin/pip install --upgrade pip
-.venv/bin/pip install -r requirements.txt
+if ! command -v uv >/dev/null; then
+    curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh   # into ~/.local/bin, .bashrc untouched
+    export PATH="$HOME/.local/bin:$PATH"
+fi
+
+uv venv --python 3.11 .venv
+uv pip install --python .venv/bin/python -r requirements.txt
 
 if [ ! -f .env ]; then
     cp .env.example .env
