@@ -1,7 +1,7 @@
 # Fusion training
 
 Train CLFT and CLFTv2 on ZOD, iSeAuto and Waymo, and put everything into [Visin](https://app.visin.eu): each run
-with its epochs, test results on every test set, visualizations, a benchmark, and the best checkpoint (`.pth`).
+with its epochs, test results on every test set, visualizations, a benchmark, and the best checkpoint as `.pth` and as an ONNX model.
 The training code is [visin-fusion](https://github.com/visin-platform/visin-fusion); this repo is the configs and
 a small runner.
 
@@ -42,8 +42,9 @@ python train.py download iseauto        # 9 GB; links it as data/iseauto
 sbatch slurm.sh configs/iseauto/clftv2-tiny/rgb.json
 ```
 
-When it ends, `slurm-<jobid>.out` should end with `Done: train, test, visualize, benchmark`, and in Visin the run
-should have its epochs, test results, visualizations, a benchmark, and a model marked *ready*.
+When it ends, `slurm-<jobid>.out` should end with `All 1 finished: train,test,visualize,benchmark,export`, and in
+Visin the run should have its epochs, test results, visualizations, a benchmark, and a model marked *ready* in
+two formats, `.pth` and `.onnx`.
 
 **4. All of iSeAuto**: 18 configs (~46 GPU-hours):
 
@@ -94,7 +95,12 @@ shows the same: the run's page fills in as each epoch finishes.
 python train.py run configs/iseauto/clftv2-tiny/rgb.json     # one config
 python train.py run configs/iseauto                          # a folder, one config after another
 python train.py run configs/zod --stages test,benchmark      # some stages again, on what was trained
+python train.py run configs/iseauto/clft-base/fusion.json --stages export   # only the ONNX model, of a finished run
 ```
+
+The `export` stage converts the run's best checkpoint to ONNX, checks its probabilities against PyTorch on the
+run's visualized frames (`visualization.txt`; at most 1e-4 apart), and saves it in the run. It needs the run's
+`logs/` folder and a connection to Visin, so with `VISIN_MODE=offline` run it again from the login node.
 
 Outputs go to `logs/<dataset>/<model>/<mode>/`.
 

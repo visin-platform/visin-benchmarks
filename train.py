@@ -7,7 +7,7 @@
     python train.py run configs/zod --stages test,benchmark  only some stages
 
 A run trains, tests the best checkpoint on every test set, renders and uploads visualizations, benchmarks the
-model, and uploads the best checkpoint. Settings (VISIN_URL, VISIN_TOKEN, ...) come from .env.
+model, uploads the best checkpoint, and exports it to ONNX. Settings (VISIN_URL, VISIN_TOKEN, ...) come from .env.
 """
 
 import argparse
@@ -19,7 +19,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-STAGES = "train,test,visualize,benchmark"
+STAGES = "train,test,visualize,benchmark,export"
 
 
 def config_files(path):
@@ -65,6 +65,43 @@ def download(dataset):
         timm.create_model(name, pretrained=True)
 
 
+def export(config):
+    """Export the run's published best checkpoint to ONNX, check it against PyTorch on real frames, and save it in
+    the run next to the .pth. Needs the run's Visin UUID (from its epoch logs), so it works on a finished run."""
+    from visin_fusion.cli import export as export_model
+
+    settings = json.loads(config.read_text())
+    general = settings.get("General", {})
+    logdir = Path(settings["Log"]["logdir"])
+    root = Path(settings["Dataset"]["dataset_root"])
+
+    epochs = sorted((logdir / "epochs").glob("epoch_*.json"), key=lambda p: p.stat().st_mtime)
+    published = sorted((logdir / "published").glob("*/checkpoint.pth"), key=lambda p: p.stat().st_mtime)
+    if not epochs or not published:
+        raise RuntimeError(f"nothing to export in {logdir}: no epochs or no published checkpoint (train first)")
+    run_uuid = json.loads(epochs[-1].read_text()).get("training_uuid")
+    if not run_uuid:
+        raise RuntimeError(f"{epochs[-1]} names no training_uuid: the run was not reported to Visin")
+
+    # Parity needs real frames: the few the run visualizes, else the smallest test set.
+    frames = root / "visualization.txt"
+    if not frames.is_file():
+        frames = min(root.glob("test_*.txt"), key=lambda p: len(p.read_text().split()), default=None)
+    if frames is None:
+        raise RuntimeError(f"no frame list under {root} to check the export against")
+
+    argv = ["--checkpoint", str(published[-1]), "--output", str(logdir / "model.onnx"), "--frames", str(frames),
+            "--dataset-root", str(root), "--publish", "--run", run_uuid]
+    if general.get("model_license"):
+        argv += ["--licence", general["model_license"]]
+    if general.get("model_credit"):
+        argv += ["--credit", general["model_credit"]]
+    try:
+        export_model(argv)
+    except SystemExit as error:  # the CLI reports failures by exiting with a message
+        raise RuntimeError(error.code) from None
+
+
 def run(path, stages, task=None):
     """Run the stages of every config the path names; a failing config does not stop the others."""
     import visin_fusion
@@ -72,6 +109,8 @@ def run(path, stages, task=None):
 
     configure_logging()  # show the pipeline's own messages: each stage as it starts, "Done" at the end
     configs = config_files(path)
+    stage_list = stages.split(",")
+    pipeline_stages = [s for s in stage_list if s != "export"]
     if task is not None:
         if not 1 <= task <= len(configs):
             sys.exit(f"--task {task}: {path} has {len(configs)} configs")
@@ -82,7 +121,11 @@ def run(path, stages, task=None):
         epochs = json.loads(config.read_text()).get("General", {}).get("epochs", "?")
         print(f"=== {config}: {stages}, {epochs} epochs (the log counts them from 0)", flush=True)
         try:
-            visin_fusion.run(config, stages.split(","), upload=True)
+            if pipeline_stages:
+                visin_fusion.run(config, pipeline_stages, upload=True)
+            if "export" in stage_list:
+                print(f"=== export: {config}", flush=True)
+                export(config)
         except Exception as error:
             print(f"FAILED {config}: {error}", file=sys.stderr, flush=True)
             failed.append(str(config))
