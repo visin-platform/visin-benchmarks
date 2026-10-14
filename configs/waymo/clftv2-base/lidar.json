@@ -15,6 +15,7 @@
     "batch_size": 2,
     "accumulate_batches": 4,
     "seed": 0,
+    "precision": "bf16",
     "early_stop_patience": 100,
     "max_checkpoints": 1,
     "publish_model": "visin",
@@ -24,7 +25,7 @@
   "CLFTv2": {
     "model_timm": "swinv2_base_window12to24_192to384_22kft1k",
     "emb_dims": [128, 256, 512, 1024],
-    "clft_lr": 8e-05,
+    "clft_lr": 4e-05,
     "pretrained": true
   }
 }

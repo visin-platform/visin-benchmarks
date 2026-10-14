@@ -13,6 +13,7 @@
     "epochs": 100,
     "batch_size": 8,
     "seed": 0,
+    "precision": "bf16",
     "early_stop_patience": 100,
     "max_checkpoints": 1,
     "publish_model": "visin",
@@ -22,7 +23,7 @@
   "CLFTv2": {
     "model_timm": "swinv2_tiny_window16_256",
     "emb_dims": [96, 192, 384, 768],
-    "clft_lr": 8e-05,
+    "clft_lr": 4e-05,
     "pretrained": true
   }
 }

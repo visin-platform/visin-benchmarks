@@ -139,6 +139,11 @@ Each model has `rgb`, `lidar` and `fusion`. Settings follow the runs of the
 - **Epochs:** CLFTv2 converged: best validation mIoU at epoch 175-190 of 200, and 86-97 of 100 on Waymo. CLFT had
   not converged at 200. Its learning rate falls by x0.99 per epoch whatever `epochs` is, and validation mIoU was
   still rising at 300 (epoch 199 → 299: ZOD Base fusion 0.412 → 0.447, iSeAuto Hybrid fusion 0.641 → 0.690).
+- **Precision and learning rate:** the CLFTv2 configs train in bf16 (`General.precision`) at `clft_lr` 4e-05,
+  whereas the CLFTv2 (final) runs used fp16 and 8e-05. CLFTv2-Base fusion on iSeAuto went NaN at epoch 78 under
+  fp16 and trained the remaining epochs on dead weights, so these settings are not those of the project's published
+  CLFTv2 numbers. The CLFT configs keep fp16 and 8e-05. A run that still produces non-finite values stops and keeps
+  its last good checkpoint (`General.max_nonfinite_batches`).
 - **Licences** (`General.model_license`, `model_credit`): ZOD `cc-by-sa-4.0`, iSeAuto `cc-by-4.0`, Waymo `other`.
   Without one, Visin refuses to serve the model.
 - **`batch_size` x `accumulate_batches`**: the optimizer steps once per `accumulate_batches` batches, so the
